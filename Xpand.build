@@ -7,10 +7,6 @@
 
 	<Import Project="Resource\Build\MSBuild.Community.Tasks.targets" />
 	<Import Project="Resource\TypeMock\TypeMock.MSBuild.Tasks"/>
-	<!--
-	<Import Project="Resource\Build\NCoverExplorer.MSBuildTasks.targets"/>
-	<Import Project="Resource\Build\Microsoft.StyleCop.Targets" />
-	-->
 	
 	<!-- Main build entry file (extends development builds)-->
 	<PropertyGroup>
@@ -151,9 +147,6 @@
 			RegexPattern="c52ffed5d5ff0958" Replacement="b88d1754d700e49a" Files="@(FilesToParse)"/>
 	</Target>
 	
-	<!-- 
-	 Solution redirects. Every VS project normally knows how to support these targets
-	-->
 	<Target Name="Build" DependsOnTargets="ReplaceKey">
 		<Message Text="@(ProjectFiles->'%(Filename)', '%0D%0A')" />
 		<MSBuild Projects="@(ProjectFiles)" Targets="Build" 
@@ -170,39 +163,24 @@
 		<RemoveDir Directories="$(BuildPath);$(XpandPath)" />
 	</Target>
 
-	<Target Name="Copy" DependsOnTargets="Build"> 
+	<Target Name="Copy"> 
 		<MakeDir Directories="$(BuildPath);$(TempPath)"/>
 
-		<!--Library
-		Resource\Library\*.*
-		-->
 		<CreateItem Include="$(XpandPath)\*.*;" Exclude="$(XpandPath)\*.locked" >
 			<Output ItemName="files" TaskParameter="Include"/>
 		</CreateItem>
 		<Copy SourceFiles="@(files)" DestinationFolder="$(TempPath)" />
 
-		<CreateItem Include="Xpand.Key\Xpand.snk;" ><!--Exclude="$(XpandPath)\*.locked" -->
+		<CreateItem Include="Xpand.Key\Xpand.snk;" >
 			<Output ItemName="keyFiles" TaskParameter="Include"/>
 		</CreateItem>
 		<Copy SourceFiles="@(keyFiles)" DestinationFolder="$(BuildPath)\Xpand.Key" />
-
-		
-		<!-- TODO: All Tests 
-		<CreateItem Include="Xpand\Xpand.Tests\**\bin\$(Configuration)\*.*" Exclude="Xpand\Xpand.Tests\**\bin\$(Configuration)\*.xml;Xpand\Xpand.Tests\**\bin\$(Configuration)\*.pdb;">
-			<Output ItemName="TestFiles" TaskParameter="Include"/>
-		</CreateItem>
-		<Copy SourceFiles="@(TestFiles)" DestinationFolder="$(TestPath)" />
-		-->
 	</Target>
 		
 	<Target Name="Test" DependsOnTargets="Clean;Build;Copy" > 
 		<TypeMockStart/>
 		<Exec ContinueOnError="false" Command="Resource\Machine.Specifications\mspec-clr4.exe Build\Temp\Xpand.Tests.dll"/>
 		<TypeMockStop/>
-	</Target>
-
-	<Target Name="Config">
-		<Message Text="This sub-solution does not need configuration" />
 	</Target>
 	
 	<Target Name="Release" DependsOnTargets="Clean;_Version;Build;" />
