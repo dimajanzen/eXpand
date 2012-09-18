@@ -205,37 +205,9 @@
 		<Message Text="This sub-solution does not need configuration" />
 	</Target>
 	
-	<Target Name="Report" DependsOnTargets="Clean;Build;Copy">
-		<MakeDir Directories="$(ArtifactDirectory)" />
-		
-		<CreateItem Include="$(XpandPath)\Xpand.*.dll;" >
-			<Output ItemName="fxAssemblies" TaskParameter="Include"/>
-		</CreateItem>
-	<!--
-	Disabled for now
-		<FxCop 
-			TargetAssemblies="@(fxAssemblies)"
-			ToolPath="Resource/Tool/FxCop" 
-			ProjectFile="$(ProjectName).FxCop" 
-			AnalysisReportFileName="$(ArtifactDirectory)/fxcop.html" 
-			ApplyOutXsl="True"
-			ContinueOnError="True"
-			FailOnError="False"
-			OutputXslFileName="Resource/Tool/FxCop/Xml/FxCopReport.xsl"
-		/> 
-		<FxCop 
-			TargetAssemblies="@(fxAssemblies)"
-			ToolPath="Resource/Tool/FxCop" 
-			ProjectFile="$(ProjectName).FxCop" 
-			AnalysisReportFileName="$(ArtifactDirectory)/fxcop-report.xml" 			
-		/> 
-		<Message Text="##teamcity[importData id='FxCop' file='$(ArtifactDirectory)/fxcop-report.xml']" />
-	-->
-	</Target>
-	
-	<Target Name="Integrate" DependsOnTargets="Clean;Test;Report;" />
+	<Target Name="Integrate" DependsOnTargets="Clean;Test;" />
 	<!--For Continuous integration and automated releases-->
-	<Target Name="Release" DependsOnTargets="Clean;_Version;Build;Report;" />
+	<Target Name="Release" DependsOnTargets="Clean;_Version;Build;" />
 	
 	<Target	Name="Installer">
 		<MakeDir Directories="$(InstallerFolder);" />
