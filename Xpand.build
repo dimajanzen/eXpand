@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<Project DefaultTargets="integrate" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
     <PropertyGroup>
         <ExtensionTasksPath Condition="'$(ExtensionTasksPath)' == ''">$(MSBuildProjectDirectory)\Resource\Build\ExtensionPack\</ExtensionTasksPath>
 		<TypeMockLocation>Resource\TypeMock\</TypeMockLocation>
@@ -205,8 +205,6 @@
 		<Message Text="This sub-solution does not need configuration" />
 	</Target>
 	
-	<Target Name="Integrate" DependsOnTargets="Clean;Test;" />
-	<!--For Continuous integration and automated releases-->
 	<Target Name="Release" DependsOnTargets="Clean;_Version;Build;" />
 	
 	<Target	Name="Installer">
