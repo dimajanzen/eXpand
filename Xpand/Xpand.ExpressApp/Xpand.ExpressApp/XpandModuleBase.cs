@@ -22,16 +22,24 @@ namespace Xpand.ExpressApp {
     [ToolboxItem(false)]
     public abstract class XpandModuleBase : ModuleBase {
         static List<object> _storeManagers;
-        public static XPDictionary Dictiorary { get; set; }
+        public static XPDictionary Dictiorary {
+            get {
+                if (!InterfaceBuilder.RuntimeMode && _dictiorary == null)
+                    _dictiorary = XpoTypesInfoHelper.GetXpoTypeInfoSource().XPDictionary;
+                return _dictiorary;
+            }
+            set { _dictiorary = value; }
+        }
+
         public static ITypesInfo TypesInfo { get; set; }
         public static string ManifestModuleName;
         static readonly object _lockObject = new object();
         static IValueManager<ModelApplicationCreator> _instanceModelApplicationCreatorManager;
         public static object Control;
         static Assembly _baseImplAssembly;
+        static XPDictionary _dictiorary;
 
         static XpandModuleBase() {
-            Dictiorary = XpoTypesInfoHelper.GetXpoTypeInfoSource().XPDictionary;
             TypesInfo = XafTypesInfo.Instance;
         }
 
@@ -187,6 +195,7 @@ namespace Xpand.ExpressApp {
         }
         public override void Setup(XafApplication application) {
             base.Setup(application);
+            Dictiorary = XpoTypesInfoHelper.GetXpoTypeInfoSource().XPDictionary;
             Type applicationType = ApplicationType();
             if (!applicationType.IsInstanceOfType(application))
                 throw new CannotLoadInvalidTypeException(application.GetType().FullName + " must implement/derive from " + applicationType.FullName + Environment.NewLine + "Please check folder Demos/Modules/" + GetType().Name.Replace("Module", null) + " to see how to install correctly this module");

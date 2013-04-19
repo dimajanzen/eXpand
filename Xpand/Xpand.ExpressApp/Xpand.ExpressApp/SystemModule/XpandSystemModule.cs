@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using DevExpress.ExpressApp;
 using DevExpress.ExpressApp.DC;
+using DevExpress.ExpressApp.Editors;
 using DevExpress.ExpressApp.Model;
 using DevExpress.ExpressApp.Model.Core;
 using DevExpress.ExpressApp.Security.ClientServer;
@@ -21,17 +22,25 @@ using Xpand.ExpressApp.NodeUpdaters;
 using Xpand.ExpressApp.TranslatorProviders;
 using Xpand.Persistent.Base.General;
 using Xpand.Persistent.Base.PersistentMetaData;
+using EditorAliases = Xpand.ExpressApp.Editors.EditorAliases;
 
 namespace Xpand.ExpressApp.SystemModule {
 
     [ToolboxItem(false)]
     [Browsable(true)]
     [EditorBrowsable(EditorBrowsableState.Always)]
-    [ToolboxBitmap(typeof(XafApplication), "Resources.SystemModule.ico")]
-    public sealed class XpandSystemModule : XpandModuleBase, IModelXmlConverter {
+    public sealed class XpandSystemModule : XpandModuleBase, IModelXmlConverter, IModelNodeUpdater<IModelMemberEx> {
         public XpandSystemModule() {
             RequiredModuleTypes.Add(typeof(DevExpress.ExpressApp.SystemModule.SystemModule));
             RequiredModuleTypes.Add(typeof(DevExpress.ExpressApp.Security.SecurityModule));
+        }
+        public void UpdateNode(IModelMemberEx node, IModelApplication application) {
+            node.IsCustom = false;
+        }
+
+        public override void AddModelNodeUpdaters(IModelNodeUpdaterRegistrator updaterRegistrator) {
+            base.AddModelNodeUpdaters(updaterRegistrator);
+            updaterRegistrator.AddUpdater(this);
         }
 
         static XpandSystemModule() {
@@ -52,14 +61,16 @@ namespace Xpand.ExpressApp.SystemModule {
         }
 
         public override void Setup(XafApplication application) {
+            if (RuntimeMode && (XafTypesInfo.PersistentEntityStore is XpandXpoTypeInfoSource) && !((ITestSupport)application).IsTesting)
+                XafTypesInfo.SetPersistentEntityStore(new XpandXpoTypeInfoSource((TypesInfo)TypesInfo));
             base.Setup(application);
             application.CreateCustomCollectionSource += LinqCollectionSourceHelper.CreateCustomCollectionSource;
             application.SetupComplete +=
                 (sender, args) =>
-                RuntimeMemberBuilder.AddFields(application.Model, Dictiorary);
+                RuntimeMemberBuilder.AddFields(application.Model);
             application.LoggedOn +=
                 (sender, args) =>
-                RuntimeMemberBuilder.AddFields(application.Model, Dictiorary);
+                RuntimeMemberBuilder.AddFields(application.Model);
         }
 
         [Browsable(false)]
@@ -89,6 +100,10 @@ namespace Xpand.ExpressApp.SystemModule {
                     memberInfo.AddAttribute(new BrowsableAttribute(false));
                 }
             }
+        }
+
+        protected override void RegisterEditorDescriptors(List<EditorDescriptor> editorDescriptors) {
+            editorDescriptors.Add(new PropertyEditorDescriptor(new AliasRegistration(EditorAliases.TimePropertyEditor, typeof(DateTime), false)));
         }
 
         void CreateAttributeRegistratorAttributes(ITypeInfo persistentType) {
@@ -154,6 +169,10 @@ namespace Xpand.ExpressApp.SystemModule {
                 parameters.NodeType = typeof(IModelRuntimeCalculatedMember);
             }
         }
+
     }
 
+    public interface ITestSupport {
+        bool IsTesting { get; set; }
+    }
 }

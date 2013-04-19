@@ -12,6 +12,7 @@ using Xpand.ExpressApp;
 using Xpand.ExpressApp.Attributes;
 using Xpand.ExpressApp.JobScheduler.Jobs.ThresholdCalculation;
 using Xpand.ExpressApp.ModelDifference;
+using Xpand.Persistent.BaseImpl;
 using CreateCustomModelDifferenceStoreEventArgs = Xpand.ExpressApp.ModelDifference.CreateCustomModelDifferenceStoreEventArgs;
 
 
@@ -20,12 +21,7 @@ namespace FeatureCenter.Module {
         static XafApplication _application;
 
         public FeatureCenterModule() {
-            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(Analysis)), IsExportedType));
-            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(Xpand.Persistent.BaseImpl.Updater)), IsExportedType));
-            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(ThresholdSeverity)), IsExportedType));
-
             InitializeComponent();
-
         }
 
         void ModelDifferenceBaseModuleOnCreateCustomModelDifferenceStore(object sender, CreateCustomModelDifferenceStoreEventArgs createCustomModelDifferenceStoreEventArgs) {
@@ -43,6 +39,7 @@ namespace FeatureCenter.Module {
 
         }
 
+
         public new static XafApplication Application {
             get { return _application; }
         }
@@ -52,6 +49,10 @@ namespace FeatureCenter.Module {
         }
         public override void Setup(ApplicationModulesManager moduleManager) {
             base.Setup(moduleManager);
+            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(Analysis)), IsExportedType));
+            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(SequenceObject)), IsExportedType));
+            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(ThresholdSeverity)), IsExportedType));
+            AdditionalExportedTypes.AddRange(ModuleHelper.CollectExportedTypesFromAssembly(Assembly.GetAssembly(typeof(Customer)), IsExportedType));
 
             var modelDifferenceBaseModule = (ModelDifferenceBaseModule)moduleManager.Modules.SingleOrDefault(mbase => mbase is ModelDifferenceBaseModule);
             if (modelDifferenceBaseModule != null)

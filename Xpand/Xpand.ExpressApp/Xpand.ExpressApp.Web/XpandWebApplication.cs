@@ -28,10 +28,18 @@ namespace Xpand.ExpressApp.Web {
         string IXafApplication.ModelAssemblyFilePath {
             get { return GetModelAssemblyFilePath(); }
         }
+        public virtual AutoCreateOption AutoCreateOption {
+            get {
+                return this.AutoCreateOption();
+            }
+        }
 
         protected virtual void OnUserDifferencesLoaded(EventArgs e) {
             EventHandler handler = UserDifferencesLoaded;
             if (handler != null) handler(this, e);
+        }
+        protected override void CreateDefaultObjectSpaceProvider(CreateCustomObjectSpaceProviderEventArgs args) {
+            this.CreateCustomObjectSpaceprovider(args, null);
         }
 
         protected override LayoutManager CreateLayoutManagerCore(bool simple) {
@@ -43,8 +51,11 @@ namespace Xpand.ExpressApp.Web {
         }
 
         protected override IHttpRequestManager CreateHttpRequestManager() {
-            var modelOptionsFriendlyUrl = Model.Options as IModelOptionsFriendlyUrl;
-            return modelOptionsFriendlyUrl != null && modelOptionsFriendlyUrl.EnableFriendlyUrl ? new XpandHttpRequestManager() : base.CreateHttpRequestManager();
+            if (Model != null) {
+                var modelOptionsFriendlyUrl = Model.Options as IModelOptionsFriendlyUrl;
+                return modelOptionsFriendlyUrl != null && modelOptionsFriendlyUrl.EnableFriendlyUrl ? new XpandHttpRequestManager() : base.CreateHttpRequestManager();
+            }
+            return base.CreateHttpRequestManager();
         }
 
         protected override void LoadUserDifferences() {
@@ -53,10 +64,8 @@ namespace Xpand.ExpressApp.Web {
         }
 
         protected override void OnSetupComplete() {
+            this.SetClientSideSecurity();
             base.OnSetupComplete();
-            var xpandObjectSpaceProvider = (ObjectSpaceProvider as XpandObjectSpaceProvider);
-            if (xpandObjectSpaceProvider != null)
-                xpandObjectSpaceProvider.SetClientSideSecurity(this.ClientSideSecurity());
         }
 
         ApplicationModulesManager IXafApplication.ApplicationModulesManager {
@@ -68,17 +77,6 @@ namespace Xpand.ExpressApp.Web {
         protected override ApplicationModulesManager CreateApplicationModulesManager(ControllersManager controllersManager) {
             _applicationModulesManager = base.CreateApplicationModulesManager(controllersManager);
             return _applicationModulesManager;
-        }
-
-        protected override void OnLoggedOn(LogonEventArgs args) {
-            base.OnLoggedOn(args);
-            ((ShowViewStrategy)ShowViewStrategy).CollectionsEditMode = DevExpress.ExpressApp.Editors.ViewEditMode.Edit;
-        }
-
-        protected override void OnCreateCustomObjectSpaceProvider(CreateCustomObjectSpaceProviderEventArgs args) {
-            base.OnCreateCustomObjectSpaceProvider(args);
-            if (args.ObjectSpaceProvider == null)
-                this.CreateCustomObjectSpaceprovider(args);
         }
 
         public new string ConnectionString {

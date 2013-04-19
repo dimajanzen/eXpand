@@ -35,6 +35,15 @@ using Xpand;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion(AssemblyInfo.Version)]
-[assembly: AssemblyFileVersion(AssemblyInfo.FileVersion)]
+[assembly: AssemblyVersion(XpandAssemblyInfo.Version)]
+[assembly: AssemblyFileVersion(XpandAssemblyInfo.FileVersion)]
 [assembly: AllowPartiallyTrustedCallers]
+
+public class XpandAssemblyInfo {
+    public const string Version = "12.2.8.8";
+    public const string FileVersion = Version;
+    public const string TabAspNetModules = "eXpand: Web Modules";
+    public const string TabWinModules = "eXpand: Win Modules";
+    public const string TabWinWebModules = "eXpand: Win-Web Modules";
+    public const string TabSecurity = "eXpand: Security";
+}

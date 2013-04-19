@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using DevExpress.ExpressApp;
+using DevExpress.ExpressApp.DC;
+using DevExpress.ExpressApp.DC.Xpo;
 using DevExpress.ExpressApp.Xpo;
 using DevExpress.Persistent.Base;
 using DevExpress.Persistent.BaseImpl;
@@ -12,6 +14,7 @@ using Xpand.ExpressApp;
 using Xpand.ExpressApp.Attributes;
 using Xpand.ExpressApp.SystemModule;
 using Xpand.ExpressApp.Win;
+using Xpand.Persistent.Base.General;
 using PessimisticLockingViewController = Xpand.ExpressApp.Win.SystemModule.PessimisticLockingViewController;
 using ViewEditModeController = Xpand.ExpressApp.Win.SystemModule.ViewEditModeController;
 
@@ -28,8 +31,9 @@ namespace Xpand.Tests.Xpand.ExpressApp {
 
     }
 
-    public class TestApplication : XpandWinApplication {
+    public class TestApplication : XpandWinApplication, ITestSupport {
         readonly XPObjectSpaceProvider _XPObjectSpaceProvider = new XPObjectSpaceProvider(new MemoryDataStoreProvider(DataSet));
+
         static DataSet _dataSet;
 
         static DataSet DataSet {
@@ -90,6 +94,11 @@ namespace Xpand.Tests.Xpand.ExpressApp {
             args.Updater.Update();
             args.Handled = true;
         }
+
+        bool ITestSupport.IsTesting {
+            get { return true; }
+            set { }
+        }
     }
 
     public class TestPessimisticLockingInfo {
@@ -113,7 +122,11 @@ namespace Xpand.Tests.Xpand.ExpressApp {
             ReflectionHelper.Reset();
             XafTypesInfo.Reset();
             XafTypesInfo.HardReset();
-            XpoTypesInfoHelper.GetXpoTypeInfoSource().ResetDictionary();
+            if (XafTypesInfo.PersistentEntityStore != null)
+                ((XpoTypeInfoSource)XafTypesInfo.PersistentEntityStore).Reset();
+            else {
+                XafTypesInfo.SetPersistentEntityStore(new XpandXpoTypeInfoSource((TypesInfo)XafTypesInfo.Instance));
+            }
             foreach (var type in typeof(User).Assembly.GetTypes()) {
                 XafTypesInfo.Instance.RegisterEntity(type);
             }

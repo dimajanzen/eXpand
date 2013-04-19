@@ -7,6 +7,8 @@ using DevExpress.ExpressApp.Web.Editors.ASPx;
 using DevExpress.Web.ASPxClasses;
 using DevExpress.Web.ASPxGridView;
 using System.Globalization;
+using System.Collections.Generic;
+using DevExpress.ExpressApp.Web.Editors;
 
 namespace Xpand.ExpressApp.Web.ListEditors {
     class MasterDetailProvider {
@@ -39,8 +41,9 @@ namespace Xpand.ExpressApp.Web.ListEditors {
             gridView.ClientSideEvents.Init = "function (s,e) { s.firstRowChangedAfterInit = true;}";
             gridView.ClientSideEvents.FocusedRowChanged =
                 @"function(s,e) { 
-                    var up = window.DetailUpdatePanelControl;
-                    if (s.firstRowChangedAfterInit!==true && up && up.GetMainElement()) { 
+                    var parentSplitter = XpandHelper.GetParentControl(s);
+                    var up = XpandHelper.GetFirstChildControl(parentSplitter.GetPane(1).GetElement().childNodes[0]);
+                    if ((s.firstRowChangedAfterInit!==true || !XpandHelper.IsRootSplitter(parentSplitter)) && up && up.GetMainElement()) { 
                         up.PerformCallback(s.GetFocusedRowIndex());} 
                     s.firstRowChangedAfterInit = false; }";
 
@@ -95,7 +98,11 @@ namespace Xpand.ExpressApp.Web.ListEditors {
         }
 
         public override IList GetSelectedObjects() {
-            return MasterDetail ? _masterDetailProvider.GetSelectedObjects(FocusedObject) : base.GetSelectedObjects();
+            IList selectedObjects = base.GetSelectedObjects();
+            if (!MasterDetail || (selectedObjects != null && selectedObjects.Count > 0))
+                return selectedObjects;
+            else
+                return _masterDetailProvider.GetSelectedObjects(FocusedObject);
         }
 
         public bool MasterDetail {
@@ -134,6 +141,15 @@ namespace Xpand.ExpressApp.Web.ListEditors {
             GridViewDataColumnWithInfo gridViewDataColumnWithInfo = base.CreateColumn(columnInfo);
             OnColumnCreated(new ColumnCreatedEventArgs(gridViewDataColumnWithInfo));
             return gridViewDataColumnWithInfo;
+        }
+		public override void SetControlSelectedObjects(IList<object> objects) {
+            if (!MasterDetail || objects.Count != 1) {
+                base.SetControlSelectedObjects(objects);
+            } else {
+                Grid.Selection.UnselectAll();
+                Grid.FocusedRowIndex = Grid.FindVisibleIndexByKeyValue(((WebDataSource)Grid.DataSource).View.GetKeyValue(objects[0]));
+                OnSelectionChanged();
+            }
         }
     }
 

@@ -4,13 +4,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using DevExpress.ExpressApp;
+using DevExpress.ExpressApp.MiddleTier;
 using DevExpress.ExpressApp.Model;
 using DevExpress.ExpressApp.Model.Core;
+using DevExpress.Xpo;
 using Xpand.ExpressApp.Core;
 using Xpand.ExpressApp.ModelDifference.Core;
 using Xpand.ExpressApp.ModelDifference.DataStore.BaseObjects;
 using Xpand.ExpressApp.ModelDifference.DataStore.Queries;
 using Xpand.Persistent.Base;
+using Xpand.Persistent.Base.General;
 
 namespace Xpand.ExpressApp.ModelDifference.DictionaryStores {
     internal class ModelDifferenceObjectInfo {
@@ -74,7 +77,12 @@ namespace Xpand.ExpressApp.ModelDifference.DictionaryStores {
 
         Dictionary<string, ModelDifferenceObjectInfo> GetLoadedModelDifferenceObjectInfos(ModelApplicationBase model) {
             Dictionary<string, ModelDifferenceObjectInfo> loadedModelDifferenceObjectInfos = GetLoadedModelApplications(model);
-            return !loadedModelDifferenceObjectInfos.Any() ? CreateNew(model) : loadedModelDifferenceObjectInfos;
+            if (!loadedModelDifferenceObjectInfos.Any())
+                if (ObjectSpace.IsServerSide() || !(Application is ServerApplication))
+                    return CreateNew(model);
+                else
+                    return loadedModelDifferenceObjectInfos;
+            return loadedModelDifferenceObjectInfos;
         }
 
         Dictionary<string, ModelDifferenceObjectInfo> CreateNew(ModelApplicationBase model) {
@@ -82,7 +90,12 @@ namespace Xpand.ExpressApp.ModelDifference.DictionaryStores {
             var application = model.CreatorInstance.CreateModelApplication();
             application.Id = Application.Title;
             model.AddLayerBeforeLast(application);
-            var modelDifferenceObject = ObjectSpace.CreateObject<ModelDifferenceObject>().InitializeMembers(application.Id,Application);
+            var modelDifferenceObject = ObjectSpace.CreateObject<ModelDifferenceObject>().InitializeMembers(application.Id, Application);
+            if (Application is ServerApplication) {
+                var xpObjectType = ObjectSpace.CreateObject<XPObjectType>();
+                xpObjectType.TypeName = typeof(UserModelDifferenceObject).FullName;
+                xpObjectType.AssemblyName = typeof(UserModelDifferenceObject).Assembly.GetName().Name;
+            }
             var modelDifferenceObjectInfo = new ModelDifferenceObjectInfo(modelDifferenceObject, application);
             modelDifferenceObjectInfos.Add(application.Id, modelDifferenceObjectInfo);
             return modelDifferenceObjectInfos;

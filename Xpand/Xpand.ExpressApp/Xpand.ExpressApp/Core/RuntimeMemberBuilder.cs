@@ -13,19 +13,20 @@ using Xpand.Xpo.MetaData;
 
 namespace Xpand.ExpressApp.Core {
     public class RuntimeMemberBuilder {
+        static readonly XPDictionary _dictionary = XpandModuleBase.Dictiorary;
         private static IEnumerable<IModelRuntimeMember> GetCustomFields(IModelApplication model) {
-            return model.BOModel.SelectMany(modelClass => modelClass.AllMembers).OfType<IModelRuntimeMember>();
+            return model.BOModel.SelectMany(modelClass => modelClass.AllMembers).OfType<IModelRuntimeMember>().Distinct();
         }
 
-        public static void AddFields(IModelApplication model, XPDictionary dictionary) {
-            AddRuntimeMembers(model, dictionary);
+        public static void AddFields(IModelApplication model) {
+            AddRuntimeMembers(model);
         }
 
-        static void AddRuntimeMembers(IModelApplication model, XPDictionary dictionary) {
+        static void AddRuntimeMembers(IModelApplication model) {
             foreach (IModelRuntimeMember modelRuntimeMember in GetCustomFields(model))
                 try {
                     Type classType = modelRuntimeMember.ModelClass.TypeInfo.Type;
-                    XPClassInfo typeInfo = dictionary.GetClassInfo(classType);
+                    XPClassInfo typeInfo = _dictionary.GetClassInfo(classType);
                     lock (typeInfo) {
                         var xpMemberInfo = typeInfo.FindMember(modelRuntimeMember.Name);
                         if (xpMemberInfo == null) {
@@ -65,8 +66,7 @@ namespace Xpand.ExpressApp.Core {
         static XpandCustomMemberInfo GetMemberInfo(IModelRuntimeMember modelMember, XPClassInfo xpClassInfo) {
             var calculatedMember = modelMember as IModelRuntimeCalculatedMember;
             if (calculatedMember != null)
-                return xpClassInfo.CreateCalculabeMember(calculatedMember.Name, calculatedMember.Type,
-                                                      new Attribute[] { new PersistentAliasAttribute(calculatedMember.AliasExpression) });
+                return xpClassInfo.CreateCalculabeMember(calculatedMember.Name, calculatedMember.Type, calculatedMember.AliasExpression);
             var member = modelMember as IModelRuntimeOrphanedColection;
             if (member != null) {
                 var modelRuntimeOrphanedColection = member;

@@ -16,17 +16,17 @@ using DevExpress.ExpressApp.Win.SystemModule;
 using DevExpress.Persistent.Base;
 using DevExpress.Xpo.DB;
 using Xpand.ExpressApp.Security;
+using Xpand.ExpressApp.SystemModule;
 using Xpand.ExpressApp.Win.ViewStrategies;
 using Xpand.ExpressApp.Core;
 using Xpand.Persistent.Base.PersistentMetaData;
 
 namespace Xpand.ExpressApp.Win {
 
-    public class XpandWinApplication : WinApplication, IWinApplication {
+    public class XpandWinApplication : WinApplication, IWinApplication, ITestSupport {
         static XpandWinApplication _application;
         DataCacheNode _cacheNode;
         ApplicationModulesManager _applicationModulesManager;
-
 
         public XpandWinApplication() {
             if (_application == null)
@@ -40,15 +40,24 @@ namespace Xpand.ExpressApp.Win {
                 _application = this;
         }
 
+        protected override void CreateDefaultObjectSpaceProvider(CreateCustomObjectSpaceProviderEventArgs args) {
+            this.CreateCustomObjectSpaceprovider(args, null);
+        }
+
         protected override void OnSetupComplete() {
+            this.SetClientSideSecurity();
             base.OnSetupComplete();
-            var xpandObjectSpaceProvider = (ObjectSpaceProvider as XpandObjectSpaceProvider);
-            if (xpandObjectSpaceProvider != null)
-                xpandObjectSpaceProvider.SetClientSideSecurity(this.ClientSideSecurity());
+
         }
 
         ApplicationModulesManager IXafApplication.ApplicationModulesManager {
             get { return _applicationModulesManager; }
+        }
+
+        public virtual AutoCreateOption AutoCreateOption {
+            get {
+                return this.AutoCreateOption();
+            }
         }
 
         public event EventHandler UserDifferencesLoaded;
@@ -89,12 +98,6 @@ namespace Xpand.ExpressApp.Win {
 
         public new void WriteLastLogonParameters(DetailView view, object logonObject) {
             base.WriteLastLogonParameters(view, logonObject);
-        }
-
-        protected override void OnCreateCustomObjectSpaceProvider(CreateCustomObjectSpaceProviderEventArgs args) {
-            base.OnCreateCustomObjectSpaceProvider(args);
-            if (args.ObjectSpaceProvider == null)
-                this.CreateCustomObjectSpaceprovider(args);
         }
 
         public new void Start() {
@@ -176,7 +179,7 @@ namespace Xpand.ExpressApp.Win {
             var applicationBase = ((ModelApplicationBase)Model);
             if (applicationBase.Id == "Application") {
                 var list = new List<ModelApplicationBase>();
-                while (applicationBase.LastLayer.Id != "UserDiff" && applicationBase.LastLayer.Id != AfterSetupLayerId) {
+                while (applicationBase.LastLayer.Id != "UserDiff" && applicationBase.LastLayer.Id != AfterSetupLayerId && applicationBase.LastLayer.Id != "Unchanged Master Part") {
                     list.Add(applicationBase.LastLayer);
                     ModelApplicationHelper.RemoveLayer(applicationBase);
                 }
@@ -218,6 +221,8 @@ namespace Xpand.ExpressApp.Win {
         string IXafApplication.RaiseEstablishingConnection() {
             return this.GetConnectionString();
         }
+
+        bool ITestSupport.IsTesting { get; set; }
     }
 
 }

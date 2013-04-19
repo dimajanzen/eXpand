@@ -1,7 +1,5 @@
-using System;
 using System.ComponentModel;
 using DevExpress.ExpressApp;
-using DevExpress.ExpressApp.Model;
 using DevExpress.ExpressApp.Model.Core;
 using DevExpress.ExpressApp.Validation;
 using Xpand.Persistent.Base.Validation.AtLeast1PropertyIsRequired;
@@ -16,7 +14,7 @@ namespace Xpand.ExpressApp.Validation {
 
         public override void AddGeneratorUpdaters(ModelNodesGeneratorUpdaters updaters) {
             base.AddGeneratorUpdaters(updaters);
-            updaters.Add(new WarningGeneratorUpdater());
+            updaters.Add(new RuleTypeGeneratorUpdater());
         }
 
         public override void Setup(ApplicationModulesManager moduleManager) {
@@ -26,12 +24,6 @@ namespace Xpand.ExpressApp.Validation {
                                      typeof(IRuleRequiredForAtLeast1PropertyProperties));
             registrator.RegisterRule(typeof(RuleFromIPropertyValueValidator),
                                      typeof(IRuleFromIPropertyValueValidatorProperties));
-        }
-
-
-        public override void ExtendModelInterfaces(ModelInterfaceExtenders extenders) {
-            base.ExtendModelInterfaces(extenders);
-            extenders.Add<IModelRuleBase, IModelRuleBaseRuleType>();
         }
     }
 }

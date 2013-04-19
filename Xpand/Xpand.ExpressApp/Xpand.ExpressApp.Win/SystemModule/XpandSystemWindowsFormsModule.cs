@@ -10,15 +10,16 @@ using DevExpress.Utils;
 using Xpand.ExpressApp.Security;
 using Xpand.ExpressApp.SystemModule;
 using Xpand.ExpressApp.Win.Model;
+using Xpand.ExpressApp.Win.PropertyEditors;
 using Xpand.Persistent.Base.PersistentMetaData;
 
 namespace Xpand.ExpressApp.Win.SystemModule {
     [ToolboxItem(true)]
-    [ToolboxTabName(XafAssemblyInfo.DXTabXafModules)]
+    [ToolboxTabName(XpandAssemblyInfo.TabWinModules)]
     [Description("Overrides Controllers from the SystemModule and supplies additional basic Controllers that are specific for Windows Forms applications.")]
     [Browsable(true)]
     [EditorBrowsable(EditorBrowsableState.Always)]
-    [ToolboxBitmap(typeof(WinApplication), "Resources.WinSystemModule.ico")]
+    [ToolboxBitmap(typeof(WinApplication), "Resources.Toolbox_Module_System_Win.ico")]
     public sealed class XpandSystemWindowsFormsModule : XpandModuleBase {
         public const string XpandWin = "Xpand.Win";
 
@@ -28,6 +29,7 @@ namespace Xpand.ExpressApp.Win.SystemModule {
         public override void ExtendModelInterfaces(ModelInterfaceExtenders extenders) {
             base.ExtendModelInterfaces(extenders);
             extenders.Add<IModelRootNavigationItems, IModelRootNavigationItemsAutoSelectedGroupItem>();
+            extenders.Add<IModelColumn, IModelColumnFastSearchItem>();
         }
 
         protected override IEnumerable<Type> GetDeclaredExportedTypes() {
